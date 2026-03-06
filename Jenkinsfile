@@ -62,9 +62,15 @@ stages {
     stage('Deploy to Kubernetes') {
         steps {
             sh '''
+            kubectl apply -f k8s-specifications/
             kubectl set image deployment/vote vote=apurv023/vote-app:v1
             kubectl set image deployment/result result=apurv023/result-app:v1
             kubectl set image deployment/worker worker=apurv023/worker-app:v1
+           
+            kubectl rollout status deployment/vote
+            kubectl rollout status deployment/result
+            kubectl rollout status deployment/worker
+            
             '''
         }
     }
