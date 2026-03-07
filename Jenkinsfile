@@ -1,16 +1,35 @@
 pipeline {
 agent any
 
+environment {
+    PROJECT_ID = "project-3fb9dc72-feba-49ea-b89"
+    CLUSTER_NAME = "cicd-cluster"
+    CLUSTER_ZONE = "asia-east1-a"
+}
+
 stages {
 
+stage('Connect to GKE') {
+    steps {
+        sh '''
+        echo "Connecting to GKE Cluster"
+
+        gcloud config set project $PROJECT_ID
+
+        gcloud container clusters get-credentials $CLUSTER_NAME \
+        --zone $CLUSTER_ZONE \
+        --project $PROJECT_ID
+
+        kubectl config get-contexts
+        kubectl get nodes
+        '''
+    }
+}
 
 stage('Clone Repository') {
     steps {
         git url: 'https://github.com/Gujjar-Apurv-023/k8s-kind-voting-app.git', branch: 'main'
         echo "Repository cloned successfully"
-        sh " kubectl get nodes "
-        sh " kubectl config get-contexts"
-        
     }
 }
 
@@ -60,10 +79,12 @@ stage('Login & Push Images') {
     }
 }
 
-stage('Deploy to Kubernetes') {
+stage('Deploy to GKE') {
     steps {
         sh '''
-        kubectl delete -f k8s-specifications/
+        echo "Deploying to Kubernetes"
+
+        kubectl delete -f k8s-specifications/ || true
         kubectl apply -f k8s-specifications/
 
         kubectl set image deployment/vote vote=apurv023/vote-app:v1
@@ -82,64 +103,24 @@ stage('Deploy to Kubernetes') {
 stage('Install Monitoring Stack (Prometheus + Grafana)') {
     steps {
         sh '''
-        echo "Installing HELM"
+        echo "Installing Helm"
 
-        curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-        chmod 700 get_helm.sh
-        ./get_helm.sh
-
-        echo "Adding Helm Repositories"
+        curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
         helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true
-        helm repo add stable https://charts.helm.sh/stable || true
         helm repo update
 
-        echo "Checking existing Prometheus stack"
+        kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
 
-        if helm list -n monitoring | grep kind-prometheus; then
-            echo "Removing existing Prometheus stack"
-            helm uninstall kind-prometheus -n monitoring
-        fi
-
-        echo "Deleting old monitoring namespace"
-        kubectl delete namespace monitoring --ignore-not-found=true
-
-        echo "Creating monitoring namespace"
-        kubectl create namespace monitoring
-
-        echo "Installing kube-prometheus-stack"
-
-        helm install kind-prometheus prometheus-community/kube-prometheus-stack \
+        helm upgrade --install gke-prometheus prometheus-community/kube-prometheus-stack \
         --namespace monitoring \
-        --set prometheus.service.type=NodePort \
-        --set prometheus.service.nodePort=30000 \
-        --set grafana.service.type=NodePort \
-        --set grafana.service.nodePort=31000 \
-        --set alertmanager.service.type=NodePort \
-        --set alertmanager.service.nodePort=32000 \
-        --set prometheus-node-exporter.service.type=NodePort \
-        --set prometheus-node-exporter.service.nodePort=32001
+        --set grafana.service.type=LoadBalancer \
+        --set prometheus.service.type=LoadBalancer
 
-        echo "Waiting for monitoring pods"
-
-        kubectl wait --for=condition=Ready pods --all -n monitoring --timeout=300s
-
-        echo "Monitoring services"
         kubectl get svc -n monitoring
-
-        echo "Stopping old port-forward processes"
-        pkill -f "kubectl port-forward" || true
-
-        echo "Starting persistent port forwarding"
-        
-  
-
-        echo "Prometheus and Grafana deployed successfully"
-        echo "test success"
         '''
     }
 }
-
 
 }
 }
