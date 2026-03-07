@@ -60,6 +60,7 @@ stage('Login & Push Images') {
 stage('Deploy to Kubernetes') {
     steps {
         sh '''
+        kubectl delete -f k8s-specifications/
         kubectl apply -f k8s-specifications/
 
         kubectl set image deployment/vote vote=apurv023/vote-app:v1
