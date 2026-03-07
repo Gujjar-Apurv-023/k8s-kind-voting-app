@@ -124,7 +124,7 @@ stage('Install Monitoring Stack (Prometheus + Grafana)') {
         kubectl get svc -n monitoring
 
         echo "Stopping old port-forward processes"
-        pkill -f "kubectl port-forward" || true
+        sudo pkill -f "kubectl port-forward" || true
 
         echo "Starting persistent port forwarding"
 
