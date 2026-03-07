@@ -10,7 +10,7 @@ stage('Clone Repository') {
         echo "Repository cloned successfully"
         sh " kubectl get nodes "
         sh " kubectl config get-contexts"
-        sh " kubectl config use-context gke_project-3fb9dc72-feba-49ea-b89_asia-east1-a_cicd-cluster "
+        
     }
 }
 
