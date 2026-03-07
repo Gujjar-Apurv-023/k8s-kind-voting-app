@@ -72,6 +72,7 @@ stages {
             kubectl rollout status deployment/worker
 
             kubectl get all
+            echo "project is successfully done"
             '''
         }
     }
