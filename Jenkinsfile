@@ -129,7 +129,7 @@ stages {
             echo "Starting Port Forwarding"
 
             kubectl port-forward svc/kind-prometheus-kube-prome-prometheus -n monitoring 9090:9090 --address=0.0.0.0 &
-            kubectl port-forward svc/kind-prometheus-grafana -n monitoring 31000:80 --address=0.0.0.0 &
+            kubectl port-forward svc/kind-prometheus-grafana -n monitoring 3000:80 --address=0.0.0.0 &
 
             echo "Prometheus and Grafana deployed successfully"
             '''
