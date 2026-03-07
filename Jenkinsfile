@@ -127,12 +127,7 @@ stage('Install Monitoring Stack (Prometheus + Grafana)') {
         sudo pkill -f "kubectl port-forward" || true
 
         echo "Starting persistent port forwarding"
-
-        nohup kubectl port-forward svc/kind-prometheus-kube-prome-prometheus \
-        -n monitoring 9090:9090 --address=0.0.0.0 > prometheus.log 2>&1 &
-
-        nohup kubectl port-forward svc/kind-prometheus-grafana \
-        -n monitoring 3000:80 --address=0.0.0.0 > grafana.log 2>&1 &
+        sh " kubectl get ingress"
 
         echo "Prometheus and Grafana deployed successfully"
         '''
