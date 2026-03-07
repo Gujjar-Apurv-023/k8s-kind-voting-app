@@ -1,6 +1,7 @@
 pipeline {
 agent any
 
+
 stages {
 
     stage('Clone Repository') {
@@ -83,15 +84,26 @@ stages {
             chmod 700 get_helm.sh
             ./get_helm.sh
 
-            echo "Adding Prometheus Helm Repo"
+            echo "Adding Helm Repositories"
 
-            helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-            helm repo add stable https://charts.helm.sh/stable
+            helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true
+            helm repo add stable https://charts.helm.sh/stable || true
             helm repo update
 
-            echo "Creating Monitoring Namespace"
+            echo "Checking existing Prometheus stack"
 
-            kubectl create namespace monitoring || true
+            if helm list -n monitoring | grep kind-prometheus; then
+                echo "Removing existing Prometheus stack"
+                helm uninstall kind-prometheus -n monitoring
+            fi
+
+            echo "Deleting old monitoring namespace"
+
+            kubectl delete namespace monitoring --ignore-not-found=true
+
+            echo "Creating monitoring namespace"
+
+            kubectl create namespace monitoring
 
             echo "Installing kube-prometheus-stack"
 
@@ -106,21 +118,25 @@ stages {
             --set prometheus-node-exporter.service.type=NodePort \
             --set prometheus-node-exporter.service.nodePort=32001
 
-            echo "Checking Monitoring Services"
+            echo "Waiting for monitoring pods to become ready"
+
+            kubectl wait --for=condition=Ready pods --all -n monitoring --timeout=300s
+
+            echo "Monitoring services"
 
             kubectl get svc -n monitoring
-            kubectl get namespace
 
             echo "Starting Port Forwarding"
-            echo "done"
 
             kubectl port-forward svc/kind-prometheus-kube-prome-prometheus -n monitoring 9090:9090 --address=0.0.0.0 &
-            kubectl port-forward svc/kind-prometheus-grafana -n monitoring 3000:80 --address=0.0.0.0 &
+            kubectl port-forward svc/kind-prometheus-grafana -n monitoring 31000:80 --address=0.0.0.0 &
 
             echo "Prometheus and Grafana deployed successfully"
             '''
         }
     }
+
 }
+
 
 }
