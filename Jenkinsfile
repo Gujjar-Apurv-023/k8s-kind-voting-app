@@ -14,13 +14,12 @@ stage('Connect to GKE') {
         sh '''
         echo "Connecting to GKE Cluster"
 
-        gcloud config set project $PROJECT_ID
+        gcloud config set project project-3fb9dc72-feba-49ea-b89
 
-        gcloud container clusters get-credentials $CLUSTER_NAME \
-        --zone $CLUSTER_ZONE \
-        --project $PROJECT_ID
+        gcloud container clusters get-credentials cicd-cluster \
+        --zone asia-east1-a \
+        --project project-3fb9dc72-feba-49ea-b89
 
-        kubectl config get-contexts
         kubectl get nodes
         '''
     }
