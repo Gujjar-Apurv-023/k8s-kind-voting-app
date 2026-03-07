@@ -70,7 +70,8 @@ stages {
             kubectl rollout status deployment/vote
             kubectl rollout status deployment/result
             kubectl rollout status deployment/worker
-            
+
+            kubectl get all
             '''
         }
     }
