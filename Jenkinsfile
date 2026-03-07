@@ -132,7 +132,7 @@ stage('Install Monitoring Stack (Prometheus + Grafana)') {
   
 
         echo "Prometheus and Grafana deployed successfully"
-        echo "test done"
+        echo "test success"
         '''
     }
 }
