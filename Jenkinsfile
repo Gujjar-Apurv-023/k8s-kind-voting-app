@@ -76,12 +76,12 @@ pipeline {
                 '''
             }
         }
-        stage('Test'
+        stage('Test'){
               steps {
                   sh "kubectl get all -n monitoring"
               }
 
-
+        }
 
     }
 }
