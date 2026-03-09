@@ -76,53 +76,12 @@ pipeline {
                 '''
             }
         }
+        stage('Test'
+              steps {
+                  sh "kubectl get all -n monitoring"
+              }
 
-        stage('Install Monitoring Stack (Prometheus + Grafana)') {
-            steps {
-                sh '''
-                echo "Installing Helm"
 
-                curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
-                chmod 700 get_helm.sh
-                ./get_helm.sh
-
-                echo "Adding Helm repositories"
-
-                helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true
-                helm repo add stable https://charts.helm.sh/stable || true
-                helm repo update
-
-                echo "Deleting old monitoring stack if exists"
-
-                helm uninstall kind-prometheus -n monitoring || true
-
-                echo "Deleting namespace if exists"
-
-                kubectl delete namespace monitoring --ignore-not-found=true
-
-                echo "Creating monitoring namespace"
-
-                kubectl create namespace monitoring
-
-                echo "Installing kube-prometheus-stack"
-
-               helm install kind-prometheus prometheus-community/kube-prometheus-stack \
-               --namespace monitoring \
-               --create-namespace \
-               --set grafana.service.type=NodePort \
-               --set grafana.service.nodePort=31000 \
-               --set prometheus.service.type=NodePort \
-               --set prometheus.service.nodePort=32000 \
-               --set alertmanager.service.type=NodePort \
-               --set alertmanager.service.nodePort=31500
-
-                echo "Checking services"
-
-                kubectl get svc -n monitoring
-                kubectl get namespace
-                '''
-            }
-        }
 
     }
 }
