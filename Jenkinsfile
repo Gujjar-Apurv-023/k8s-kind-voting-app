@@ -5,7 +5,6 @@ stages {
 
 stage('Clone Repository') {
     steps {
-        sh " kubectl get nodes "
         git url: 'https://github.com/Gujjar-Apurv-023/k8s-kind-voting-app.git', branch: 'main'
         echo "Repository cloned successfully"
         echo "test success"
