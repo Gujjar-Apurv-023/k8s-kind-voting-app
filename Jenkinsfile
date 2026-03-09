@@ -88,9 +88,22 @@ stage('Install Monitoring Stack (Prometheus + Grafana)') {
         helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true
         helm repo update
 
+        echo "Creating monitoring namespace if not exists"
         kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
 
-        helm upgrade --install gke-prometheus prometheus-community/kube-prometheus-stack \
+        echo "Checking if Helm release exists"
+
+        if helm status gke-prometheus -n monitoring > /dev/null 2>&1; then
+            echo "Existing Helm release found. Deleting..."
+            helm uninstall gke-prometheus -n monitoring
+            sleep 10
+        else
+            echo "No existing Helm release found."
+        fi
+
+        echo "Installing Prometheus + Grafana"
+
+        helm install gke-prometheus prometheus-community/kube-prometheus-stack \
         --namespace monitoring \
         --set grafana.service.type=LoadBalancer \
         --set prometheus.service.type=LoadBalancer
