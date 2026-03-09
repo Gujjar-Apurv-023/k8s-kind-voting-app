@@ -63,7 +63,6 @@ stage('Deploy to GKE') {
         sh '''
         echo "Deploying to Kubernetes"
 
-        kubectl delete -f k8s-specifications/ || true
         kubectl apply -f k8s-specifications/
 
         kubectl set image deployment/vote vote=apurv023/vote-app:v1
