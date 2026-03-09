@@ -1,29 +1,9 @@
 pipeline {
 agent any
 
-environment {
-    PROJECT_ID = "project-3fb9dc72-feba-49ea-b89"
-    CLUSTER_NAME = "cicd-cluster"
-    CLUSTER_ZONE = "asia-east1-a"
-}
+
 
 stages {
-
-stage('Connect to GKE') {
-    steps {
-        sh '''
-        echo "Connecting to GKE Cluster"
-
-        gcloud config set project project-3fb9dc72-feba-49ea-b89
-
-        gcloud container clusters get-credentials cicd-cluster \
-        --zone asia-east1-a \
-        --project project-3fb9dc72-feba-49ea-b89
-
-        kubectl get nodes
-        '''
-    }
-}
 
 stage('Clone Repository') {
     steps {
@@ -62,7 +42,7 @@ stage('Build Worker Image') {
 stage('Login & Push Images') {
     steps {
         withCredentials([usernamePassword(
-            credentialsId: 'apurv023',
+            credentialsId: 'ApurvCredd',
             usernameVariable: 'USER',
             passwordVariable: 'PASS'
         )]) {
