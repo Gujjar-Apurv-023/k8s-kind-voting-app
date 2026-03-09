@@ -7,8 +7,6 @@ stage('Clone Repository') {
     steps {
         git url: 'https://github.com/Gujjar-Apurv-023/k8s-kind-voting-app.git', branch: 'main'
         echo "Repository cloned successfully"
-        echo "test success"
-    
     }
 }
 
@@ -61,11 +59,10 @@ stage('Login & Push Images') {
 stage('Deploy to GKE') {
     steps {
         sh '''
-        echo "Deploying to Kubernetes"
+        echo "Deploying application"
 
-        kubectl delete -f k8s-specifications/
+        kubectl delete -f k8s-specifications/ || true
         kubectl apply -f k8s-specifications/
-        
 
         kubectl set image deployment/vote vote=apurv023/vote-app:v1
         kubectl set image deployment/result result=apurv023/result-app:v1
@@ -90,25 +87,23 @@ stage('Install Monitoring Stack (Prometheus + Grafana)') {
         helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true
         helm repo update
 
-        echo "Creating monitoring namespace if not exists"
+        echo "Ensure monitoring namespace exists"
         kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
 
-        echo "Checking if Helm release exists"
+        echo "Remove old monitoring stack if exists"
+        helm uninstall gke-prometheus -n monitoring || true
+        sleep 15
 
-        if helm status gke-prometheus -n monitoring > /dev/null 2>&1; then
-            echo "Existing Helm release found. Deleting..."
-            helm uninstall gke-prometheus -n monitoring
-            sleep 10
-        else
-            echo "No existing Helm release found."
-        fi
-
-        echo "Installing Prometheus + Grafana"
+        echo "Installing Prometheus + Grafana (NEG disabled)"
 
         helm install gke-prometheus prometheus-community/kube-prometheus-stack \
         --namespace monitoring \
         --set grafana.service.type=LoadBalancer \
+        --set grafana.service.annotations."cloud\\.google\\.com/neg"="false" \
         --set prometheus.service.type=LoadBalancer
+
+        echo "Waiting for LoadBalancer..."
+        sleep 60
 
         kubectl get svc -n monitoring
         '''
