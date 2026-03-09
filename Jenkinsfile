@@ -7,6 +7,10 @@ stages {
 
 stage('Clone Repository') {
     steps {
+        sh " cd kind-cluster/"
+        sh " kind create cluster --config config.yml"
+        sh "kubectl get nodes"
+        sh " cd .. "
         git url: 'https://github.com/Gujjar-Apurv-023/k8s-kind-voting-app.git', branch: 'main'
         echo "Repository cloned successfully"
     }
