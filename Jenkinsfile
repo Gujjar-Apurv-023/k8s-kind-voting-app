@@ -106,12 +106,15 @@ pipeline {
 
                 echo "Installing kube-prometheus-stack"
 
-                helm install kind-prometheus prometheus-community/kube-prometheus-stack \
-                --namespace monitoring \
-                --create-namespace \
-                --set grafana.service.type=LoadBalancer \
-                --set prometheus.service.type=LoadBalancer \
-                --set alertmanager.service.type=LoadBalancer
+               helm install kind-prometheus prometheus-community/kube-prometheus-stack \
+               --namespace monitoring \
+               --create-namespace \
+               --set grafana.service.type=NodePort \
+               --set grafana.service.nodePort=31000 \
+               --set prometheus.service.type=NodePort \
+               --set prometheus.service.nodePort=32000 \
+               --set alertmanager.service.type=NodePort \
+               --set alertmanager.service.nodePort=33000
 
                 echo "Checking services"
 
