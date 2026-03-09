@@ -5,6 +5,7 @@ stages {
 
 stage('Clone Repository') {
     steps {
+        echo "test"
         sh " cd kind-cluster/"
         sh " kind create cluster --config config.yml"
         sh "kubectl get nodes"
