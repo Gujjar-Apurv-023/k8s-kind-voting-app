@@ -114,7 +114,7 @@ pipeline {
                --set prometheus.service.type=NodePort \
                --set prometheus.service.nodePort=32000 \
                --set alertmanager.service.type=NodePort \
-               --set alertmanager.service.nodePort=33000
+               --set alertmanager.service.nodePort=31500
 
                 echo "Checking services"
 
